@@ -1,6 +1,7 @@
 #include <math.h>
 #include <time.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -26,6 +27,16 @@ typedef struct _vehicle
 	float state[6];
 } vehicle;
 
+void print_single_arr(float *data, int len)
+{
+	int i;
+
+	printf("data = \n");
+
+	for(i = 0; i < len; i++)
+		printf("%4f\n", data[i]);
+}
+
 void print_arr(float **data, int col, int row)
 {
 	int i, j;
@@ -36,6 +47,26 @@ void print_arr(float **data, int col, int row)
 	{
 		for(j = 0; j < row; j++)
 			printf("%4f ", data[i][j]);
+
+		printf("\n");
+	}
+}
+
+void print_tri_arr(float ***data, int dim, int col, int row)
+{
+	int i, j, k;
+
+	printf("data = \n");
+
+	for(i = 0; i < dim; i++)
+	{
+		for(j = 0; j < col; j++)
+		{
+			for(k = 0; k < row; k++)
+				printf("%4f ", data[i][j][k]);
+
+			printf("\n");
+		}
 
 		printf("\n");
 	}
@@ -170,6 +201,155 @@ void perturb_goal(float *perturb, float *gs, float *gd)
 	memcpy(&perturb[3], new_d_goal, 12);
 }
 
+#if 0
+void get_s_d_goals(float ***all_goals, float *s_coeff, float *d_coeff, int cnt)
+{
+	int i, j, k = 0, tmp = 0;
+	int col = (n_sam + 1) * cnt;
+
+	float **s_goal = NULL;
+	float **d_goal = NULL;
+	float *t = NULL;
+
+	printf("col = %d\n", col);
+
+	s_goal = (float **)malloc(sizeof(float *) * col);
+	d_goal = (float **)malloc(sizeof(float *) * col);
+	t = (float *)malloc(sizeof(float) * col);
+
+	for(i = 0; i < col; i++)
+	{
+		s_goal[i] = (float *)malloc(sizeof(float) * 3);
+		d_goal[i] = (float *)malloc(sizeof(float) * 3);
+
+		for(j = 0; j < 3; j++)
+		{
+			s_goal[i][j] = all_goals[tmp][k][j];
+			d_goal[i][j] = all_goals[tmp][k][j + 3];
+		}
+
+		t[i] = all_goals[tmp][k][6];
+
+		k++;
+
+		if(k == n_sam + 1)
+		{
+			tmp++;
+			k = 0;
+		}
+	}
+
+	//print_arr(s_goal, col, 3);
+	//print_arr(d_goal, col, 3);
+	//print_single_arr(t, col);
+
+	jerk_min_trajectory();
+}
+#endif
+
+void get_s_d_goals(float ***all_goals, float **s_goal, float **d_goal, float *t, int cnt)
+{
+	int i, j, k = 0, tmp = 0;
+	int col = (n_sam + 1) * cnt;
+
+	//float **s_goal = NULL;
+	//float **d_goal = NULL;
+	//float *t = NULL;
+
+	printf("col = %d\n", col);
+
+	s_goal = (float **)malloc(sizeof(float *) * col);
+	d_goal = (float **)malloc(sizeof(float *) * col);
+	//t = (float *)malloc(sizeof(float) * col);
+
+	for(i = 0; i < col; i++)
+	{
+		s_goal[i] = (float *)malloc(sizeof(float) * 3);
+		d_goal[i] = (float *)malloc(sizeof(float) * 3);
+
+		for(j = 0; j < 3; j++)
+		{
+			s_goal[i][j] = all_goals[tmp][k][j];
+			d_goal[i][j] = all_goals[tmp][k][j + 3];
+		}
+
+		t[i] = all_goals[tmp][k][6];
+
+		k++;
+
+		if(k == n_sam + 1)
+		{
+			tmp++;
+			k = 0;
+		}
+	}
+
+	//print_arr(s_goal, col, 3);
+	//print_arr(d_goal, col, 3);
+	//print_single_arr(t, col);
+
+	//jerk_min_trajectory();
+}
+
+void jerk_min_trajectory(float **trajectory, float *sstart, float *dstart,
+			 float **send, float **dend, float *t, int len)
+{
+	float a_s0[len];
+	float a_d0[len];
+	float a_s1[len];
+	float a_d1[len];
+	float a_s2[len];
+	float a_d2[len];
+
+	float c_s0[len];
+	float c_d0[len];
+	float c_s1[len];
+	float c_d1[len];
+	float c_s2[len];
+	float c_d2[len];
+
+	int i;
+
+	for(i = 0; i < len; i++)
+	{
+		a_s0[i] = sstart[0];
+		a_d0[i] = dstart[0];
+		a_s1[i] = sstart[1];
+		a_d1[i] = dstart[1];
+		a_s2[i] = sstart[2];
+		a_d2[i] = dstart[2];
+
+		c_s0[i] = a_s0[i] + a_s1[i] * t[i] + a_s2[i] * t[i] * t[i];
+		c_d0[i] = a_d0[i] + a_d1[i] * t[i] + a_d2[i] * t[i] * t[i];
+
+		c_s1[i] = a_s1[i] + 2 * a_s2[i] * t[i];
+		c_d1[i] = a_d1[i] + 2 * a_d2[i] * t[i];
+
+		c_s2[i] = 2 * a_s2[i];
+		c_d2[i] = 2 * a_d2[i];
+	}
+}
+
+#if 0
+void mov_arr_to_arr(float ***all_goals, float (*goals)[7], int cnt, int col, int row)
+{
+	int i, j;
+
+	for(i = 0; i < col; i++)
+		for(j = 0; j < row; j++)
+			all_goals[cnt][i][j] = goals[i][j];
+}
+#endif
+
+void mov_arr_to_arr(float ***all_goals, float **goals, int cnt, int col, int row)
+{
+	int i, j;
+
+	for(i = 0; i < col; i++)
+		for(j = 0; j < row; j++)
+			all_goals[cnt][i][j] = goals[i][j];
+}
+
 void ptg(float *ss, float *sd, float tv, float *delta, float T, void *pred)
 {
 	vehicle *target = (vehicle *)pred;
@@ -179,28 +359,56 @@ void ptg(float *ss, float *sd, float tv, float *delta, float T, void *pred)
 	float goal_d[4] = {0};
 	float perturb[7] = {0};
 
+#if 1
 	float **goals = NULL;
-	float **all_goals = NULL;
+#endif
 
-	float *trajectories = NULL;
+#if 0
+	float goals[n_sam + 1][7];
+#endif
+	float ***all_goals = NULL;
+
+	float **trajectories = NULL;
+
+	float **s_goal = NULL;
+	float **d_goal = NULL;
+	float *time = NULL;
 
 	float timestep = 0.5;
 	float t;
 
 	int tmp = (n_sam + 1) * sizeof(float) * 7;
 	int cnt = 0;
-	int i;
+	int i, j;
 
+	//printf("sizeof(goals[n_sam + 1][7]) = %lu\n", sizeof(goals));
+	printf("(n_sam + 1) * sizeof(float) * 7 = %lu\n", (n_sam + 1) * sizeof(float) * 7);
+
+
+#if 1
 	goals = (float **)malloc(sizeof(float *) * (n_sam  + 1));
 
 	for(i = 0; i < n_sam + 1; i++)
 		goals[i] = (float *)malloc(sizeof(float) * 7);
 		//memset(&goals[i], 0x0, sizeof(float) * 7 * n_sam);
+#endif
 
+#if 0
 	all_goals = (float **)malloc(sizeof(float *) * (n_sam + 1) * (4 / timestep));
 
 	for(i = 0; i < (n_sam + 1) * (4 / timestep); i++)
 		all_goals[i] = (float *)malloc(sizeof(float) * 7);
+#endif
+
+	all_goals = (float ***)malloc(sizeof(float **) * ((4 / timestep) + 1));
+
+	for(i = 0; i < ((4 / timestep) + 1); i++)
+	{
+		all_goals[i] = (float **)malloc(sizeof(float *) * (n_sam + 1));
+
+		for(j = 0; j < n_sam + 1; j++)
+			all_goals[i][j] = (float *)malloc(sizeof(float) * 7);
+	}
 
 	t = T - 4 * timestep;
 
@@ -210,6 +418,7 @@ void ptg(float *ss, float *sd, float tv, float *delta, float T, void *pred)
 		memcpy(goal_s, target_state, 12);
 		memcpy(goal_d, &target_state[3], 12);
 		memcpy(&goals[0][0], target_state, 24);
+		goals[0][6] = t;
 
 		for(i = 0; i < n_sam; i++)
 		{
@@ -220,11 +429,25 @@ void ptg(float *ss, float *sd, float tv, float *delta, float T, void *pred)
 
 		//print_arr(goals, n_sam + 1, 7);
 
-		memcpy(&all_goals[(1 + n_sam) * cnt++], &goals[0], (n_sam + 1) * sizeof(float) * 7);
-		print_arr(all_goals, (n_sam + 1), 7);
+		//memcpy(&all_goals[(1 + n_sam) * cnt++], &goals[0], (n_sam + 1) * sizeof(float) * 7);
+		//print_arr(goals, (n_sam + 1), 7);
+
+		//printf("t = %f\n", t);
+		//memcpy(&all_goals[cnt++][0][0], &goals[0][0], (n_sam + 1) * sizeof(float *) * 7);
+		//memcpy(&all_goals[cnt++], goals, (n_sam + 1) * sizeof(float) * 7);
+		mov_arr_to_arr(all_goals, goals, cnt, n_sam + 1, 7);
+		//memmove(&all_goals[cnt++][0][0], &goals[0][0], (n_sam + 1) * sizeof(float) * 7);
+		cnt++;
 
 		t += timestep;
 	}
+
+	print_tri_arr(all_goals, (4 / timestep) + 1, (n_sam + 1), 7);
+
+	time = (float *)malloc(sizeof(float) * ((4 / timestep) + 1) * (n_sam + 1));
+
+	get_s_d_goals(all_goals, s_goal, d_goal, time, cnt);
+	jerk_min_trajectory(trajectories, ss, sd, s_goal, d_goal, time, (n_sam + 1) * cnt);
 }
 
 int main(void)
@@ -235,8 +458,8 @@ int main(void)
 	//float init[7] = {0, 10, 0, 0, 0, 0};
 	float init[7] = {0, 1, 2, 3, 4, 5};
 	float delta[7] = {0, 0, 0, 0, 0, 0};
-	float start_s[4] = {0, 0, 0};
-	float start_d[4] = {0, 0, 0};
+	float start_s[4] = {10, 10, 0};
+	float start_d[4] = {4, 0, 0};
 	float T = 5.0;
 
 	srand(time(NULL));
