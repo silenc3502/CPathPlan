@@ -156,11 +156,15 @@ void perturb_goal(float *perturb, float *gs, float *gd)
 	float new_s_goal[4] = {0};
 	float new_d_goal[4] = {0};
 
+#if 0
 	for(i = 0; i < 3; i++)
 	{
 		new_s_goal[i] = gen_gaussian_rand_num(gs[i], sigma_s[i]);
 		new_d_goal[i] = gen_gaussian_rand_num(gd[i], sigma_s[i]);
 	}
+#endif
+	gen_gaussian_rand_num_arr(new_s_goal, gs, sigma_s, 3);
+	gen_gaussian_rand_num_arr(new_d_goal, gd, sigma_s, 3);
 
 	memcpy(perturb, new_s_goal, 12);
 	memcpy(&perturb[3], new_d_goal, 12);
