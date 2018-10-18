@@ -258,15 +258,8 @@ void get_s_d_goals(float ***all_goals, float **s_goal, float **d_goal, float *t,
 
 	printf("col = %d\n", col);
 
-	s_goal = (float **)malloc(sizeof(float *) * col);
-	d_goal = (float **)malloc(sizeof(float *) * col);
-	//t = (float *)malloc(sizeof(float) * col);
-
 	for(i = 0; i < col; i++)
 	{
-		s_goal[i] = (float *)malloc(sizeof(float) * 3);
-		d_goal[i] = (float *)malloc(sizeof(float) * 3);
-
 		for(j = 0; j < 3; j++)
 		{
 			s_goal[i][j] = all_goals[tmp][k][j];
@@ -284,7 +277,7 @@ void get_s_d_goals(float ***all_goals, float **s_goal, float **d_goal, float *t,
 		}
 	}
 
-	//print_arr(s_goal, col, 3);
+	print_arr(s_goal, col, 3);
 	//print_arr(d_goal, col, 3);
 	//print_single_arr(t, col);
 
@@ -308,7 +301,15 @@ void jerk_min_trajectory(float **trajectory, float *sstart, float *dstart,
 	float c_s2[len];
 	float c_d2[len];
 
-	int i;
+	float ***A_s = NULL;
+	float ***A_d = NULL;
+	float **B_s = NULL;
+	float **B_d = NULL;
+
+	int i, j, k;
+
+	A_s = (float ***)malloc(sizeof(float **) * len);
+	B_s = (float **)malloc(sizeof(float *) * len);
 
 	for(i = 0; i < len; i++)
 	{
@@ -327,6 +328,24 @@ void jerk_min_trajectory(float **trajectory, float *sstart, float *dstart,
 
 		c_s2[i] = 2 * a_s2[i];
 		c_d2[i] = 2 * a_d2[i];
+
+		A_s[i] = (float **)malloc(sizeof(float *) * 3);
+		B_s[i] = (float *)malloc(sizeof(float) * 3);
+
+		for(j = 0; j < 3; j++)
+			A_s[i][j] = (float *)malloc(sizeof(float) * 3);
+
+		A_s[i][0][0] = pow(t[i], 3);
+		A_s[i][0][1] = pow(t[i], 4);
+		A_s[i][0][2] = pow(t[i], 5);
+		A_s[i][1][0] = 3 * pow(t[i], 2);
+		A_s[i][1][1] = 4 * pow(t[i], 3);
+		A_s[i][1][2] = 5 * pow(t[i], 4);
+		A_s[i][2][0] = 6 * t[i];
+		A_s[i][2][1] = 12 * pow(t[i], 2);
+		A_s[i][2][2] = 20 * pow(t[i], 3);
+
+		B_s[i][0] = send[i][0];
 	}
 }
 
@@ -378,7 +397,7 @@ void ptg(float *ss, float *sd, float tv, float *delta, float T, void *pred)
 	float t;
 
 	int tmp = (n_sam + 1) * sizeof(float) * 7;
-	int cnt = 0;
+	int col, cnt = 0;
 	int i, j;
 
 	//printf("sizeof(goals[n_sam + 1][7]) = %lu\n", sizeof(goals));
@@ -445,6 +464,17 @@ void ptg(float *ss, float *sd, float tv, float *delta, float T, void *pred)
 	print_tri_arr(all_goals, (4 / timestep) + 1, (n_sam + 1), 7);
 
 	time = (float *)malloc(sizeof(float) * ((4 / timestep) + 1) * (n_sam + 1));
+
+    col = (n_sam + 1) * cnt;
+
+    s_goal = (float **)malloc(sizeof(float *) * col);
+    d_goal = (float **)malloc(sizeof(float *) * col);
+
+    for(i = 0; i < col; i++)
+    {   
+        s_goal[i] = (float *)malloc(sizeof(float) * 3); 
+        d_goal[i] = (float *)malloc(sizeof(float) * 3);
+	}
 
 	get_s_d_goals(all_goals, s_goal, d_goal, time, cnt);
 	jerk_min_trajectory(trajectories, ss, sd, s_goal, d_goal, time, (n_sam + 1) * cnt);
