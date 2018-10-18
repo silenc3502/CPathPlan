@@ -311,6 +311,9 @@ void jerk_min_trajectory(float **trajectory, float *sstart, float *dstart,
 	A_s = (float ***)malloc(sizeof(float **) * len);
 	B_s = (float **)malloc(sizeof(float *) * len);
 
+	A_d = (float ***)malloc(sizeof(float **) * len);
+	B_d = (float **)malloc(sizeof(float *) * len);
+
 	for(i = 0; i < len; i++)
 	{
 		a_s0[i] = sstart[0];
@@ -332,8 +335,14 @@ void jerk_min_trajectory(float **trajectory, float *sstart, float *dstart,
 		A_s[i] = (float **)malloc(sizeof(float *) * 3);
 		B_s[i] = (float *)malloc(sizeof(float) * 3);
 
+		A_d[i] = (float **)malloc(sizeof(float *) * 3);
+		B_d[i] = (float *)malloc(sizeof(float) * 3);
+
 		for(j = 0; j < 3; j++)
+		{
 			A_s[i][j] = (float *)malloc(sizeof(float) * 3);
+			A_d[i][j] = (float *)malloc(sizeof(float) * 3);
+		}
 
 		A_s[i][0][0] = pow(t[i], 3);
 		A_s[i][0][1] = pow(t[i], 4);
@@ -345,7 +354,23 @@ void jerk_min_trajectory(float **trajectory, float *sstart, float *dstart,
 		A_s[i][2][1] = 12 * pow(t[i], 2);
 		A_s[i][2][2] = 20 * pow(t[i], 3);
 
-		B_s[i][0] = send[i][0];
+		B_s[i][0] = send[i][0] - c_s0[i];
+		B_s[i][1] = send[i][1] - c_s1[i];
+		B_s[i][2] = send[i][2] - c_s2[i];
+
+		A_d[i][0][0] = pow(t[i], 3);
+		A_d[i][0][1] = pow(t[i], 4);
+		A_d[i][0][2] = pow(t[i], 5);
+		A_d[i][1][0] = 3 * pow(t[i], 2);
+		A_d[i][1][1] = 4 * pow(t[i], 3);
+		A_d[i][1][2] = 5 * pow(t[i], 4);
+		A_d[i][2][0] = 6 * t[i];
+		A_d[i][2][1] = 12 * pow(t[i], 2);
+		A_d[i][2][2] = 20 * pow(t[i], 3);
+
+		B_d[i][0] = dend[i][0] - c_d0[i];
+		B_d[i][1] = dend[i][1] - c_d1[i];
+		B_d[i][2] = dend[i][2] - c_d2[i];
 	}
 }
 
