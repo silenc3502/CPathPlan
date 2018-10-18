@@ -73,7 +73,7 @@ void state_in(float *ts, vehicle *v, float *delta, float t)
 	ts[2] = v->s[2] + delta[2];
 
 	ts[3] = (v->d[0] + (v->d[1] * t) + v->d[2] * t * t / 2.0) + delta[3];
-	ts[4] = (v->d[1] + v->d[1] * t) + delta[4];
+	ts[4] = (v->d[1] + v->d[2] * t) + delta[4];
 	ts[5] = v->d[2] + delta[5];
 }
 
@@ -100,14 +100,67 @@ void gen_gaussian_rand_num_arr(float *data, float *mean, float *std, int len)
 	}
 }
 
+#if 0
+float gen_gaussian_rand_num(float mu, float sigma)
+{
+	float U1, U2, W, mult;
+	static float X1, X2;
+	static int call = 0;
+
+	if (call == 1)
+	{
+		call = !call;
+		return (mu + sigma * (float) X2);
+	}
+
+	do
+	{
+		U1 = -1 + ((float)rand () / RAND_MAX) * 2;
+		U2 = -1 + ((float)rand () / RAND_MAX) * 2;
+		W = pow (U1, 2) + pow (U2, 2);
+	}
+	while (W >= 1 || W == 0);
+
+	mult = sqrt ((-2 * log (W)) / W);
+	X1 = U1 * mult;
+	X2 = U2 * mult;
+
+	call = !call;
+
+	return (mu + sigma * (float)X1);
+}
+#endif
+
+float gen_gaussian_rand_num(float average, float stdev) {
+	double v1, v2, s, temp;
+
+	srand(time(NULL));
+
+	do {
+		v1 =  2 * ((float) rand() / RAND_MAX) - 1; // -1.0 ~ 1.0 까지의 값
+		v2 =  2 * ((float) rand() / RAND_MAX) - 1; // -1.0 ~ 1.0 까지의 값
+		s = v1 * v1 + v2 * v2;
+	} while (s >= 1 || s == 0);
+
+	s = sqrt( (-2 * log(s)) / s );
+
+	temp = v1 * s;
+	temp = (stdev * temp) + average;
+
+	return temp;
+}
+
 void perturb_goal(float *perturb, float *gs, float *gd)
 {
 	int i;
 	float new_s_goal[4] = {0};
 	float new_d_goal[4] = {0};
 
-	gen_gaussian_rand_num_arr(new_s_goal, gs, sigma_s, 3);
-	gen_gaussian_rand_num_arr(new_d_goal, gd, sigma_s, 3);
+	for(i = 0; i < 3; i++)
+	{
+		new_s_goal[i] = gen_gaussian_rand_num(gs[i], sigma_s[i]);
+		new_d_goal[i] = gen_gaussian_rand_num(gd[i], sigma_s[i]);
+	}
 
 	memcpy(perturb, new_s_goal, 12);
 	memcpy(&perturb[3], new_d_goal, 12);
