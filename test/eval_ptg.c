@@ -1,4 +1,5 @@
 #include <math.h>
+#include <time.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -24,6 +25,21 @@ typedef struct _vehicle
 	float d[3];
 	float state[6];
 } vehicle;
+
+void print_arr(float **data, int col, int row)
+{
+	int i, j;
+
+	printf("data = \n");
+
+	for(i = 0; i < col; i++)
+	{
+		for(j = 0; j < row; j++)
+			printf("%4f ", data[i][j]);
+
+		printf("\n");
+	}
+}
 
 vehicle *init_vehicle(float *init_data)
 {
@@ -94,7 +110,7 @@ void perturb_goal(float *perturb, float *gs, float *gd)
 	gen_gaussian_rand_num_arr(new_d_goal, gd, sigma_s, 3);
 
 	memcpy(perturb, new_s_goal, 12);
-	memcpy(perturb, new_d_goal, 12);
+	memcpy(&perturb[3], new_d_goal, 12);
 }
 
 void ptg(float *ss, float *sd, float tv, float *delta, float T, void *pred)
@@ -102,16 +118,32 @@ void ptg(float *ss, float *sd, float tv, float *delta, float T, void *pred)
 	vehicle *target = (vehicle *)pred;
 
 	float target_state[7] = {0};
-	float goals[8] = {0};
 	float goal_s[4] = {0};
 	float goal_d[4] = {0};
 	float perturb[7] = {0};
 
-	float *all_goals = NULL;
+	float **goals = NULL;
+	float **all_goals = NULL;
+
+	float *trajectories = NULL;
+
 	float timestep = 0.5;
 	float t;
 
+	int tmp = (n_sam + 1) * sizeof(float) * 7;
+	int cnt = 0;
 	int i;
+
+	goals = (float **)malloc(sizeof(float *) * (n_sam  + 1));
+
+	for(i = 0; i < n_sam + 1; i++)
+		goals[i] = (float *)malloc(sizeof(float) * 7);
+		//memset(&goals[i], 0x0, sizeof(float) * 7 * n_sam);
+
+	all_goals = (float **)malloc(sizeof(float *) * (n_sam + 1) * (4 / timestep));
+
+	for(i = 0; i < (n_sam + 1) * (4 / timestep); i++)
+		all_goals[i] = (float *)malloc(sizeof(float) * 7);
 
 	t = T - 4 * timestep;
 
@@ -120,13 +152,19 @@ void ptg(float *ss, float *sd, float tv, float *delta, float T, void *pred)
 		state_in(target_state, target, delta, t);
 		memcpy(goal_s, target_state, 12);
 		memcpy(goal_d, &target_state[3], 12);
-		memcpy(goals, target_state, 24);
-		goals[7] = t;
+		memcpy(&goals[0][0], target_state, 24);
 
 		for(i = 0; i < n_sam; i++)
 		{
 			perturb_goal(perturb, goal_s, goal_d);
+			memcpy(&goals[i + 1][0], perturb, 24);
+			goals[i + 1][6] = t;
 		}
+
+		//print_arr(goals, n_sam + 1, 7);
+
+		memcpy(&all_goals[(1 + n_sam) * cnt++], &goals[0], (n_sam + 1) * sizeof(float) * 7);
+		print_arr(all_goals, (n_sam + 1), 7);
 
 		t += timestep;
 	}
@@ -137,11 +175,14 @@ int main(void)
 	void *pred = NULL;
 	vehicle *veh = NULL;
 	float target = 0;
-	float init[7] = {0, 10, 0, 0, 0, 0};
+	//float init[7] = {0, 10, 0, 0, 0, 0};
+	float init[7] = {0, 1, 2, 3, 4, 5};
 	float delta[7] = {0, 0, 0, 0, 0, 0};
 	float start_s[4] = {0, 0, 0};
 	float start_d[4] = {0, 0, 0};
 	float T = 5.0;
+
+	srand(time(NULL));
 
 	veh = init_vehicle(init);
 	pred = init_predict(veh);
