@@ -1,5 +1,5 @@
-# CarND-Path-Planning-Project
-Self-Driving Car Engineer Nanodegree Program
+# Path Planning Project Overview  
+In this project, I need to implement Path Planning Algorithm to drive a car on the highway that is the simulator. The Simulator sends the information about the position and velocity of car and sensor fusion data about the rest of the cars on the highway (ex: Car ID, Velocity, Position). The Sampling Time is 0.02 so it can expects the trajectory of the car every 0.02 seconds. Here are some important limitation that is speed, acceleration, jerk, collision, lane change time, and etc. Finally use proper curve function to drive car with spline, bezier curve, and etc.
    
 ### Simulator.
 You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases/tag/T3_v1.2).
