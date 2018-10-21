@@ -167,7 +167,7 @@ vector<double> getXY(double s, double d, const vector<double> &maps_s, const vec
 int main() {
   uWS::Hub h;
 
-  // Load up map values for waypoint's x,y,s and d normalized normal vectors
+  // Map values for Waypoint's x,y,s and d normalized normal vectors
   vector<double> map_waypoints_x;
   vector<double> map_waypoints_y;
   vector<double> map_waypoints_s;
@@ -183,8 +183,7 @@ int main() {
   // starting lane 1
   int lane = 1;
   // reference velocity(mph)
-  double ref_vel = 0.0;
-
+  double reference_velocity = 0.0;
 #endif
 
   ifstream in_map_(map_file_.c_str(), ifstream::in);
@@ -209,7 +208,7 @@ int main() {
   	map_waypoints_dy.push_back(d_y);
   }
 
-  h.onMessage([&ref_vel, &lane, &map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+  h.onMessage([&lane, &reference_velocity, &map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -217,7 +216,6 @@ int main() {
     //auto sdata = string(data).substr(0, length);
     //cout << sdata << endl;
     if (length && length > 2 && data[0] == '4' && data[1] == '2') {
-
       auto s = hasData(data);
 
       if (s != "") {
@@ -236,9 +234,10 @@ int main() {
           	double car_yaw = j[1]["yaw"];
           	double car_speed = j[1]["speed"];
 
-          	// Previous path data given to the Planner
+          	// Previous path data given to the Path Planner
           	auto previous_path_x = j[1]["previous_path_x"];
           	auto previous_path_y = j[1]["previous_path_y"];
+
           	// Previous path's end s and d values 
           	double end_path_s = j[1]["end_path_s"];
           	double end_path_d = j[1]["end_path_d"];
@@ -251,20 +250,38 @@ int main() {
             double ref_y = car_y;
             double ref_yaw = deg2rad(car_yaw);
 
+            // This is the Path Size
             int prev_size = previous_path_x.size();
 
+            // Prevent Collisions with the other car
             if(prev_size > 0)
               car_s = end_path_s;
 
+            // Analysis Position of the other cars to Prediction for Path Planning
             bool car_ahead = false;
             bool car_left = false;
             bool car_right = false;
 
+            // Setting the Limit Values and declare difference of speed value
+            double speed_diff = 0;
+            double max_speed = 49.8;
+            double max_accel = 0.224;
+
+            vector<double> ptsx;
+            vector<double> ptsy;
+
+            // Make Spline with Udacity's spline tool
+            tk::spline s;
+
+            // Loop - 12
             for(int i = 0; i < sensor_fusion.size(); i++)
             {
+              //cout << "Sensor Fusion Size = " << sensor_fusion.size() << endl;
+
               float d = sensor_fusion[i][6];
               int car_lane = -1;
 
+              // Confirm the other Cars are on the same lane
               if(d > 0 && d < 4)
                 car_lane = 0;
               else if(d > 4 && d < 8)
@@ -277,22 +294,26 @@ int main() {
 
               double vx = sensor_fusion[i][3];
               double vy = sensor_fusion[i][4];
+
+              // It's for 2-D Velocity
+              // If we use 3-D Model then need to add vz too.
               double check_speed = sqrt(vx * vx + vy * vy);
-              double check_car_s = sensor_fusion[i][5];
+              double other_car_s = sensor_fusion[i][5];
 
-              check_car_s += ((double)prev_size * 0.02 * check_speed);
+              // Check The Other Car s position after confirm previous trajectory
+              // It's based on signal processing - sampling time = 0.02
+              other_car_s += ((double)prev_size * 0.02 * check_speed);
 
+              // The other car is in my car's lane
               if(car_lane == lane)
-                car_ahead |= check_car_s > car_s && check_car_s - car_s < 17;
+                car_ahead |= other_car_s > car_s && other_car_s - car_s < 17;
+              // The other car is left from my car's lane
               else if(car_lane - lane == -1)
-                car_left |= car_s - 35 < check_car_s && car_s + 35 > check_car_s;
+                car_left |= car_s - 35 < other_car_s && car_s + 35 > other_car_s;
+              // The other car is right from my car's lane
               else if(car_lane - lane == 1)
-                car_right |= car_s - 35 < check_car_s && car_s + 35 > check_car_s;
+                car_right |= car_s - 35 < other_car_s && car_s + 35 > other_car_s;
             }
-
-            double speed_diff = 0;
-            double max_speed = 49.8;
-            double max_accel = 0.224;
 
             if(car_ahead)
             {
@@ -308,13 +329,12 @@ int main() {
               if(lane != 1)
                 if((lane == 0 && !car_right) || (lane == 2 && !car_left))
                   lane = 1;
-              if(ref_vel < max_speed)
+              if(reference_velocity < max_speed)
                 speed_diff += max_accel;
             }
 
-            vector<double> ptsx;
-            vector<double> ptsy;
-
+            // Is there are the previous data ?
+            // If we don't have prev data then we can't calculate.
             if(prev_size < 2)
             {
               double prev_car_x = car_x - cos(car_yaw);
@@ -342,55 +362,59 @@ int main() {
               ptsy.push_back(ref_y);
             }
 
-            vector<double> next_wp0 = getXY(car_s + 30, 2 + 4 * lane, map_waypoints_s, map_waypoints_x, map_waypoints_y);
-            vector<double> next_wp1 = getXY(car_s + 60, 2 + 4 * lane, map_waypoints_s, map_waypoints_x, map_waypoints_y);
-            vector<double> next_wp2 = getXY(car_s + 90, 2 + 4 * lane, map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            // Setting New WayPoint
+            vector<double> new_wp0 = getXY(car_s + 30, 2 + 4 * lane, map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            vector<double> new_wp1 = getXY(car_s + 60, 2 + 4 * lane, map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            vector<double> new_wp2 = getXY(car_s + 90, 2 + 4 * lane, map_waypoints_s, map_waypoints_x, map_waypoints_y);
 
-            ptsx.push_back(next_wp0[0]);
-            ptsx.push_back(next_wp1[0]);
-            ptsx.push_back(next_wp2[0]);
+            ptsx.push_back(new_wp0[0]);
+            ptsx.push_back(new_wp1[0]);
+            ptsx.push_back(new_wp2[0]);
 
-            ptsy.push_back(next_wp0[1]);
-            ptsy.push_back(next_wp1[1]);
-            ptsy.push_back(next_wp2[1]);
+            ptsy.push_back(new_wp0[1]);
+            ptsy.push_back(new_wp1[1]);
+            ptsy.push_back(new_wp2[1]);
 
+            // Use Rotation Matrix to make Local Car Coordinates
             for(int i = 0; i < ptsx.size(); i++)
             {
-              double shift_x = ptsx[i] - ref_x;
-              double shift_y = ptsy[i] - ref_y;
+              double rot_x = ptsx[i] - ref_x;
+              double rot_y = ptsy[i] - ref_y;
 
-              ptsx[i] = shift_x * cos(0 - ref_yaw) - shift_y * sin(0 - ref_yaw);
-              ptsy[i] = shift_x * sin(0 - ref_yaw) + shift_y * cos(0 - ref_yaw);
+              ptsx[i] = rot_x * cos(0 - ref_yaw) - rot_y * sin(0 - ref_yaw);
+              ptsy[i] = rot_x * sin(0 - ref_yaw) + rot_y * cos(0 - ref_yaw);
             }
 
-            tk::spline s;
+            // Create Spline
             s.set_points(ptsx, ptsy);
 
             vector<double> next_x_vals;
             vector<double> next_y_vals;
 
+            // Get the Sample(previous data)
             for(int i = 0; i < prev_size; i++)
             { 
               next_x_vals.push_back(previous_path_x[i]);
               next_y_vals.push_back(previous_path_y[i]);
             }
 
-            // Calculate distance y position on 30 m ahead.
+            // Calculate Target Distance when x position is 30.
             double target_x = 30.0;
             double target_y = s(target_x);
             double target_dist = sqrt(target_x*target_x + target_y*target_y);
-
             double x_add_on = 0;
 
             for(int i = 1; i < 50 - prev_size; i++)
             { 
-              ref_vel += speed_diff;
-              if (ref_vel > max_speed) 
-                ref_vel = max_speed;
-              else if (ref_vel < max_accel)
-                ref_vel = max_accel;
+              reference_velocity += speed_diff;
+              if (reference_velocity > max_speed) 
+                reference_velocity = max_speed;
+              else if (reference_velocity < max_accel)
+                reference_velocity = max_accel;
 
-              double N = target_dist/(0.02*ref_vel/2.24);
+              // Sample Number
+              //double N = target_dist/(0.02*reference_velocity/2.5);
+              double N = target_dist/(0.02*reference_velocity/2.24);
               double x_point = x_add_on + target_x/N;
               double y_point = s(x_point);
 
