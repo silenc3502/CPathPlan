@@ -134,7 +134,7 @@ Mathematician make new method to represent curve with Polynomials that is the Sp
 Spline needs Control Points.  
 And the gap between Control Points is called the Interval or Segment.  
 
-![Spline1](./img/spline1.png)
+![Spline1](./img/spline1.png)  
 
 There are two kinds of splines.  
 One is Interpolating Spline and the other is Approximating Spline.  
