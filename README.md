@@ -113,3 +113,19 @@ This code has three parts that is Predictation, Behavior Planning, Trajectory wi
 2) Is it safe to change right or left lane ?  
 
 This two question is the core of this part.  
+
+* Behavior Planning  
+
+1) Speed up or down ?
+2) Can I change the lane when the other car is exist in front of my car ?
+
+This part decide upon questions.
+
+* Trajectory with Spline
+
+1) Calculate trajectory with speed & lane from the Behavior Planning, and past Path Points.  
+2) Make Spline more continuity(Moving trajectory can't be descrete)
+
+* Spline Basics
+
+
