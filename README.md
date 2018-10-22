@@ -134,6 +134,7 @@ Mathematician make new method to represent curve with Polynomials that is the Sp
 Spline needs Control Points.  
 And the gap between Control Points is called the Interval or Segment.  
 
+![Spline1](./img/spline1.png)
 
 There are two kinds of splines.  
 One is Interpolating Spline and the other is Approximating Spline.  
@@ -149,3 +150,8 @@ If someone change the Control Points then we have to change all of the curve fun
 ![Spline2](./img/spline2.png)
 
 This is the reason of Mathematician use 3rd order(Cubic) Function for Spline.  
+
+Now I can explain about the Cardinal Spline.
+We can represent Spline with paramter looks like below picture.
+
+![Spline3](./img/spline3.png)
