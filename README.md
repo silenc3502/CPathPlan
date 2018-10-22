@@ -151,7 +151,23 @@ If someone change the Control Points then we have to change all of the curve fun
 
 This is the reason of Mathematician use 3rd order(Cubic) Function for Spline.  
 
-Now I can explain about the Cardinal Spline.
-We can represent Spline with paramter looks like below picture.
+Now I can explain about the Cardinal Spline.  
+We can represent Spline with paramter looks like below picture.  
 
 ![Spline3](./img/spline3.png)
+
+m(t) is the parameter representation of the line between p1 and p2.  
+Look below picture then we can get the formula!  
+
+![Spline4](./img/spline4.png)
+
+If parameter t is going 0 to 1 then it can draw Straight Line.  
+t = 0 then m(t) is p2 and t = 1 then m(t) is p1.  
+
+Let's assume like below.  
+
+p1 = (x1, y1, z1), p2 = (x2, y2, z2)  
+
+![Spline5](./img/spline5.png)
+
+We can make the Straight Line with this mechanism.  
