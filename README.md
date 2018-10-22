@@ -87,7 +87,7 @@ Success to drive car at least 4.32 miles without incident.
 
 ## Reflections of Generating Paths
 
-First I try to implement all algorithm with C Language.  
+First I try to implement all algorithm with C Language which one is provided by Udacity.  
 You can see this code at below link.  
 
 https://github.com/silenc3502/CPathPlan/blob/master/test/eval_ptg.c  
@@ -197,4 +197,12 @@ Apply it to upon formula then we can get below formula.
 
 We can use this Spline Function from below link.  
 
-https://kluge.in-chemnitz.de/opensource/spline/
+https://kluge.in-chemnitz.de/opensource/spline/  
+
+## Future Works
+
+This time I failed to implement it all with C Language not C++.
+However I'll try it when I finished to analysis random.gauss(mu, sigma) pattern at below link.  
+
+random - https://github.com/python/cpython/blob/master/Modules/_randommodule.c#L131
+random.gauss() - https://github.com/python/cpython/blob/master/Lib/random.py#L598  
