@@ -171,3 +171,30 @@ p1 = (x1, y1, z1), p2 = (x2, y2, z2)
 ![Spline5](./img/spline5.png)
 
 We can make the Straight Line with this mechanism.  
+
+Now let's think about the curve looks like below.  
+
+![Spline6](./img/spline6.png)
+
+We can see the curve between p1 and p2 that is m(t1) and between p2 and p3 that is m(t2).  
+Now think about the (0 <= t <= 1) range.  
+The formula can be expanded as shown below.  
+
+![Spline7](./img/spline7.png)
+
+Let's think abouth the formula.  
+The point p1 at t1 = 0 in m(t1) is the point at t = 0 even in the case of p(t).  
+The point p2 with t1 = 1 can be regarded as a midpoint with t = 0.5 at the curve p(t).  
+A point p2 with t2 = 0 in m2(t) can also be considered as t = 0.5.  
+It can be seen that t1 = 2t through t = 0.5 when t1 = 0 and t = 0 and t1 = 1.  
+It can be seen that t = 0 when t1 = 0 and t = 0.5 when t1 = 1.  
+So we can know t1 = 2t.  
+t = 0.5 when t1 = 0.5 and t = 0.5 when t2 = 0.  
+So we can know t2 = 2t - 1.  
+Apply it to upon formula then we can get below formula.  
+
+![Spline8](./img/spline8.png)
+
+We can use this Spline Function from below link.  
+
+https://kluge.in-chemnitz.de/opensource/spline/
