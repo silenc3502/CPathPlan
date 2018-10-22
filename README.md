@@ -116,16 +116,28 @@ This two question is the core of this part.
 
 * Behavior Planning  
 
-1) Speed up or down ?
-2) Can I change the lane when the other car is exist in front of my car ?
+1) Speed up or down ?  
+2) Can I change the lane when the other car is exist in front of my car ?  
 
-This part decide upon questions.
+This part decide upon questions.  
 
-* Trajectory with Spline
+* Trajectory with Spline  
 
 1) Calculate trajectory with speed & lane from the Behavior Planning, and past Path Points.  
-2) Make Spline more continuity(Moving trajectory can't be descrete)
+2) Make Spline more continuity(Moving trajectory can't be descrete)  
 
-* Spline Basics
+* Spline Basics  
 
+If we want represent curve then there are many method that is Spline, Bezier curve, and etc.  
+Mathematician make new method to represent curve with Polynomials that is the Spline.  
 
+Spline needs Control Points.  
+And the gap between Control Points is called the Interval or Segment.  
+
+![Spline1](./img/spline1.png)
+
+There are two kinds of splines.  
+One is Interpolating Spline and the other is Approximating Spline.  
+
+Interpolating Spline passes Control Points precisely and uses Control Points to precisely control the Shape of Curve.  
+Approximating Spline doesn't passe
