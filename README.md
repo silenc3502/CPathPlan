@@ -134,10 +134,18 @@ Mathematician make new method to represent curve with Polynomials that is the Sp
 Spline needs Control Points.  
 And the gap between Control Points is called the Interval or Segment.  
 
-![Spline1](./img/spline1.png)  
 
 There are two kinds of splines.  
 One is Interpolating Spline and the other is Approximating Spline.  
 
 Interpolating Spline passes Control Points precisely and uses Control Points to precisely control the Shape of Curve.  
-Approximating Spline doesn't passe
+Approximating Spline don't pass through the Control Points, and some pass throught the Start and End Control Points.  
+
+Generally use Interpolating Spline for each section to ensure the accuracy of the curve after use Approximating Spline to make smooth curve.  
+
+Locality of Spline has big mean to make curve.  
+If someone change the Control Points then we have to change all of the curve function.  
+
+![Spline2](./img/spline2.png)
+
+This is the reason of Mathematician use 3rd order(Cubic) Function for Spline.  
