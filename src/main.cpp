@@ -251,10 +251,10 @@ int main() {
             double ref_yaw = deg2rad(car_yaw);
 
             // This is the Path Size
-            int prev_size = previous_path_x.size();
+            int previous_path_size = previous_path_x.size();
 
             // Prevent Collisions with the other car
-            if(prev_size > 0)
+            if(previous_path_size > 0)
               car_s = end_path_s;
 
             // Analysis Position of the other cars to Prediction for Path Planning
@@ -297,12 +297,12 @@ int main() {
 
               // It's for 2-D Velocity
               // If we use 3-D Model then need to add vz too.
-              double check_speed = sqrt(vx * vx + vy * vy);
+              double speed = sqrt(vx * vx + vy * vy);
               double other_car_s = sensor_fusion[i][5];
 
               // Check The Other Car s position after confirm previous trajectory
               // It's based on signal processing - sampling time = 0.02
-              other_car_s += ((double)prev_size * 0.02 * check_speed);
+              other_car_s += ((double)previous_path_size * 0.02 * speed);
 
               // The other car is in my car's lane
               if(car_lane == lane)
@@ -335,30 +335,30 @@ int main() {
 
             // Is there are the previous data ?
             // If we don't have prev data then we can't calculate.
-            if(prev_size < 2)
+            if(previous_path_size < 2)
             {
-              double prev_car_x = car_x - cos(car_yaw);
-              double prev_car_y = car_y - sin(car_yaw);
+              double previous_car_x = car_x - cos(car_yaw);
+              double previous_car_y = car_y - sin(car_yaw);
 
-              ptsx.push_back(prev_car_x);
+              ptsx.push_back(previous_car_x);
               ptsx.push_back(car_x);
 
-              ptsy.push_back(prev_car_y);
+              ptsy.push_back(previous_car_y);
               ptsy.push_back(car_y);
             }
             else
             {
-              ref_x = previous_path_x[prev_size - 1];
-              ref_y = previous_path_y[prev_size - 1];
+              ref_x = previous_path_x[previous_path_size - 1];
+              ref_y = previous_path_y[previous_path_size - 1];
 
-              double ref_x_prev = previous_path_x[prev_size - 2];
-              double ref_y_prev = previous_path_y[prev_size - 2];
-              ref_yaw = atan2(ref_y - ref_y_prev, ref_x - ref_x_prev);
+              double ref_x_previous = previous_path_x[previous_path_size - 2];
+              double ref_y_previous = previous_path_y[previous_path_size - 2];
+              ref_yaw = atan2(ref_y - ref_y_previous, ref_x - ref_x_previous);
 
-              ptsx.push_back(ref_x_prev);
+              ptsx.push_back(ref_x_previous);
               ptsx.push_back(ref_x);
 
-              ptsy.push_back(ref_y_prev);
+              ptsy.push_back(ref_y_previous);
               ptsy.push_back(ref_y);
             }
 
@@ -392,7 +392,7 @@ int main() {
             vector<double> next_y_vals;
 
             // Get the Sample(previous data)
-            for(int i = 0; i < prev_size; i++)
+            for(int i = 0; i < previous_path_size; i++)
             { 
               next_x_vals.push_back(previous_path_x[i]);
               next_y_vals.push_back(previous_path_y[i]);
@@ -404,7 +404,7 @@ int main() {
             double target_dist = sqrt(target_x*target_x + target_y*target_y);
             double x_add_on = 0;
 
-            for(int i = 1; i < 50 - prev_size; i++)
+            for(int i = 1; i < 50 - previous_path_size; i++)
             { 
               reference_velocity += speed_diff;
               if (reference_velocity > max_speed) 
@@ -414,6 +414,12 @@ int main() {
 
               // Sample Number
               //double N = target_dist/(0.02*reference_velocity/2.5);
+              //double N = target_dist/(0.02*reference_velocity/1.25);
+              //double N = target_dist/(0.02*reference_velocity/2.75);
+              //double N = target_dist/(0.02*reference_velocity/3.0);
+              //double N = target_dist/(0.02*reference_velocity/1.5);
+              //double N = target_dist/(0.02*reference_velocity/1.8);
+              //double N = target_dist/(0.02*reference_velocity/2.0);
               double N = target_dist/(0.02*reference_velocity/2.24);
               double x_point = x_add_on + target_x/N;
               double y_point = s(x_point);

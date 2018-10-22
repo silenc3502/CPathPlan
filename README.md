@@ -206,3 +206,5 @@ However I'll try it when I finished to analysis random.gauss(mu, sigma) pattern 
 
 random - https://github.com/python/cpython/blob/master/Modules/_randommodule.c#L131  
 random.gauss() - https://github.com/python/cpython/blob/master/Lib/random.py#L598  
+
+sdf
