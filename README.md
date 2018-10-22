@@ -204,5 +204,5 @@ https://kluge.in-chemnitz.de/opensource/spline/
 This time I failed to implement it all with C Language not C++.
 However I'll try it when I finished to analysis random.gauss(mu, sigma) pattern at below link.  
 
-random - https://github.com/python/cpython/blob/master/Modules/_randommodule.c#L131
+random - https://github.com/python/cpython/blob/master/Modules/_randommodule.c#L131  
 random.gauss() - https://github.com/python/cpython/blob/master/Lib/random.py#L598  
