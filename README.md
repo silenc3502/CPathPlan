@@ -102,4 +102,14 @@ So I change my mind to implement it to use provided code fragment.
 That is the src/main.cpp code.  
 Now I start to explain about my strategy to implement it.
 
+It starts at line 182 ~ 187 for declare variable to use path planner algorithm.  
+And at line 211, I add this variables.  
+My additional algorithm code is start at line 249 ~ 434.  
+This code has three parts that is Predictation, Behavior Planning, Trajectory with Spline.
 
+* Predictation
+
+1) Does my front car interfere traffic ?  
+2) Is it safe to change right or left lane ?  
+
+This two question is the core of this part.  
