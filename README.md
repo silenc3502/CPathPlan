@@ -104,7 +104,7 @@ Now I start to explain about my strategy to implement it.
 
 It starts at line 182 ~ 187 for declare variable to use path planner algorithm.  
 And at line 211, I add this variables.  
-My additional algorithm code is start at line 249 ~ 434.  
+My additional algorithm code is start at line 249 ~ 440.  
 This code has three parts that is Predictation, Behavior Planning, Trajectory with Spline.
 
 * Predictation
@@ -206,5 +206,3 @@ However I'll try it when I finished to analysis random.gauss(mu, sigma) pattern 
 
 random - https://github.com/python/cpython/blob/master/Modules/_randommodule.c#L131  
 random.gauss() - https://github.com/python/cpython/blob/master/Lib/random.py#L598  
-
-sdf
